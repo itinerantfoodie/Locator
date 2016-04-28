@@ -1,0 +1,25 @@
+{
+  "name": "Locator",
+  "version": "2.0.0",
+  "description": "An AWS Lambda package which acts as a JS beacon",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "dependencies": {
+    "async": "^1.5.2",
+    "aws-sdk": "^2.2.45",
+    "node-uuid": "^1.4.7",
+    "request": "2.69.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nolim1t/travelstats-lambda.git"
+  },
+  "author": "BT <bt@perceptionz.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nolim1t/travelstats-lambda/issues"
+  },
+  "homepage": "https://github.com/nolim1t/travelstats-lambda#readme"
+}
