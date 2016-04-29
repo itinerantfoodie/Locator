@@ -105,17 +105,11 @@ exports.handler = function(event, context) {
                       response.meta.msg = response.status;
                       response["where"] = res.Items[0]["where"];
                     } else {
-                      response.status = "too many locator records";
-                      response.meta.status = 500;
+                      response.status = "OK";
+                      response.meta.status = 200;
                       response.meta.msg = response.status;
-                      // Too many records
-                      response["where"] = {
-                        "name":"Unknown",
-                        "state":"Unknown",
-                        "code":"XX",
-                        "country":"Unknown",
-                        "city":"Unknown"
-                      }
+                      // Show last locator record
+                      response["where"] = res.Items[res.Items.length - 1]["where"];
                     }
                     context.succeed(response);
                   }
