@@ -4,6 +4,9 @@ This is a microservice for caching the users foursquare location (to DynamoDB), 
 
 The service currently requires an active foursquare token.
 
+## URL
+https://k44y2euhaf.execute-api.us-east-1.amazonaws.com/prod/GeoBeacon
+
 ## Type
 This is a HTTP web service that returns JSON responses.
 
