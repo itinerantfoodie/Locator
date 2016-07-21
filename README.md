@@ -84,5 +84,5 @@ aws lambda create-function --function-name GeoBeacon \
 Replace the function name and profile name with your profile
 
 ```bash
-rm ../locatorV2.zip ; zip -r ../locatorV2.zip * ; aws lambda update-function-code --function-name GeoBeacon   --zip-file fileb://../locatorV2.zip --profile=perceptionz
+rm ../locatorV2.zip ; zip -r ../locatorV2.zip * ; aws lambda update-function-code --function-name GeoBeacon   --zip-file fileb://../locatorV2.zip --profile=perceptionz ; rm ../locatorV2.zip
 ```

@@ -46,7 +46,8 @@ exports.handler = function(event, context) {
                 if (!err) {
                   if (res.Count == 0) {
                     // Lets grab some data if the record is old
-                    var url = "https://api.foursquare.com/v2/users/self?oauth_token=" + oauth_token + "&v=20160226";
+                    //var url = "https://api.foursquare.com/v2/users/self?oauth_token=" + oauth_token + "&v=20160226";
+                    var url = "https://api.foursquare.com/v2/users/self/checkins?oauth_token=" + oauth_token + "&v=20160226";
                     https.get(url, function(res) {
                       var body = '';
                       res.on('data', function(d) {
@@ -61,32 +62,55 @@ exports.handler = function(event, context) {
                         }
                         if (respObj.meta.code == 200) {
                           response["status"] = "OK";
-                          var checkinObj = respObj.response.user.checkins;
-                          var lastCheckin = checkinObj.items[0];
-                          var lastCheckinLocation = lastCheckin.venue.location;
-                          var lastCheckinTS = lastCheckin.createdAt;
-                          var lastCheckinVenueId = lastCheckin.venue.id;
-                          var locationString = "";
-                          if (lastCheckinLocation.city !== undefined) {
-                              locationString = lastCheckinLocation.city;
+                          var checkinObj = respObj.response.checkins;
+                          var checkinHistory = checkinObj.items;
+                          var lastCheckin = checkinHistory[0];
+                          var checkinIsVisible = true;
+                          if (lastCheckin.visibility != undefined) {
+                            checkinIsVisible = false;
+                            console.log("Checkin not visible");
+                          } else {
+                            console.log("Checkin is visible");
                           }
-                          if (lastCheckinLocation.country !== undefined) {
-                              if (locationString !== "") {
-                                  locationString = locationString + ", ";
+                          if (checkinIsVisible == false) {
+                            for (var i = 1; i < checkinHistory.length; i++) {
+                              var checkinHistoryItem = checkinHistory[i];
+                              // If there is no visibility set for this checkin its good assuming we haven't already found a non off the grid checkin
+                              if (checkinHistoryItem.visibility == undefined && checkinIsVisible == false) {
+                                // Set lastCheckin to the next item thats available
+                                lastCheckin = checkinHistoryItem;
+                                checkinIsVisible = true;
                               }
-                              locationString = locationString + lastCheckinLocation.country
+                            }
                           }
-                          var whereObj = {name: lastCheckinLocation.country, code: lastCheckinLocation.cc, country: lastCheckinLocation.country};
-                          if (lastCheckinLocation.city !== undefined) whereObj.city = lastCheckinLocation.city;
-                          if (lastCheckinLocation.state !== undefined) whereObj.state = lastCheckinLocation.state;
-                          if (lastCheckinVenueId !== undefined) whereObj.foursquareid = lastCheckinVenueId;
-                          if (lastCheckinTS !== undefined) whereObj['lastseen_timestamp'] = lastCheckinTS;
-                          response["where"] = whereObj;
-                          // Store record
-                          dbparams.Item["where"] = whereObj;
-                          dynamo.putItem(dbparams, function(db) {
-                          });
-                          response["record"] = dbparams.Item["identifier"]
+                          var whereObj = {name: "Somewhere", code: "XX", country: "Off the Grid!"};
+                          if (checkinIsVisible == true) {
+                            // Do database and display
+                            var lastCheckinLocation = lastCheckin.venue.location;
+                            var lastCheckinTS = lastCheckin.createdAt;
+                            var lastCheckinVenueId = lastCheckin.venue.id;
+                            var locationString = "";
+                            if (lastCheckinLocation.city !== undefined) {
+                                locationString = lastCheckinLocation.city;
+                            }
+                            if (lastCheckinLocation.country !== undefined) {
+                                if (locationString !== "") {
+                                    locationString = locationString + ", ";
+                                }
+                                locationString = locationString + lastCheckinLocation.country
+                            }
+                            whereObj = {name: lastCheckinLocation.country, code: lastCheckinLocation.cc, country: lastCheckinLocation.country};
+                            if (lastCheckinLocation.city !== undefined) whereObj.city = lastCheckinLocation.city;
+                            if (lastCheckinLocation.state !== undefined) whereObj.state = lastCheckinLocation.state;
+                            if (lastCheckinVenueId !== undefined) whereObj.foursquareid = lastCheckinVenueId;
+                            if (lastCheckinTS !== undefined) whereObj['lastseen_timestamp'] = lastCheckinTS;
+                            response["where"] = whereObj;
+                            // Store record
+                            dbparams.Item["where"] = whereObj;
+                            dynamo.putItem(dbparams, function(db) {
+                            });
+                            response["record"] = dbparams.Item["identifier"]
+                          }
                           response.status = "OK";
                           response.meta.status = 200;
                         } else {
