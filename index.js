@@ -83,7 +83,7 @@ exports.handler = function(event, context) {
                               }
                             }
                           }
-                          var whereObj = {name: "Somewhere", code: "XX", country: "Off the Grid!"};
+                          var whereObj = {name: "Off the Grid!", code: "XX", country: "Off the Grid!"};
                           if (checkinIsVisible == true) {
                             // Do database and display
                             var lastCheckinLocation = lastCheckin.venue.location;
