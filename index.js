@@ -92,6 +92,25 @@ exports.handler = function(event, context) {
                           if (lastCheckinLocation.state !== undefined) whereObj.state = lastCheckinLocation.state;
                           if (lastCheckinVenueId !== undefined) whereObj.foursquareid = lastCheckinVenueId;
                           if (lastCheckinTS !== undefined) whereObj['lastseen_timestamp'] = lastCheckinTS;
+                          /* Random assign location */
+                          // BEGIN
+                          var lat = lastCheckin.venue.location.lat;
+                          var lng = lastCheckin.venue.location.lng;
+                          if ((Math.floor(Math.random() * (100 - 1))) % 2) {
+                            var fuzzy_lat = lat + Math.random() * (0.1 - 0.001);
+                          } else {
+                            var fuzzy_lat = lat - Math.random() * (0.1 - 0.001);
+                          }
+                          if ((Math.floor(Math.random() * (100 - 1))) % 2) {
+                            var fuzzy_lng = lng + Math.random() * (0.1 - 0.001);
+                          } else {
+                            var fuzzy_lng = lng - Math.random() * (0.1 - 0.001);
+                          }
+                          // END
+                          whereObj['geo'] = {
+                            "lat": fuzzy_lat,
+                            "lng": fuzzy_lng
+                          };
                           response["where"] = whereObj;
                           // Store record
                           dbparams.Item["where"] = whereObj;
