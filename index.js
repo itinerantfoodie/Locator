@@ -5,7 +5,7 @@ var dynamo = new doc.DynamoDB();
 var uuid = require('node-uuid');
 var foursquare = require('./lib/foursquare');
 
-exports.handler = function(event, context) {
+exports.handler = function(event, context, callback) {
   var dbparams = {
     TableName: event.tablename
   };
@@ -25,7 +25,8 @@ exports.handler = function(event, context) {
         response.status = "PONG";
         response.meta.status = 200;
         response.meta.msg = response.status;
-        context.succeed(response);
+        //context.succeed(response);
+        callback(null, response);
         break;
       case "locate":
         response.status = "Require parameter: oauth";
@@ -123,7 +124,8 @@ exports.handler = function(event, context) {
                       } else {
                         response.meta.status = 400;
                       }
-                      context.succeed(response); // Return response
+                      //context.succeed(response); // Return response
+                      callback(null, response);
                     });
                   } else {
                     // Use cached entry
@@ -139,32 +141,37 @@ exports.handler = function(event, context) {
                       // Show last locator record
                       response["where"] = res.Items[res.Items.length - 1]["where"];
                     }
-                    context.succeed(response);
+                    //context.succeed(response);
+                    callback(null, response);
                   }
                 } else {
                   response["status"] = "Query Error";
                   response.meta.status = 500;
                   response.meta.msg = response.status;
                   response["err"] = err;
-                  context.succeed(response);
+                  //context.succeed(response);
+                  callback(null, response);
                 }
             });
         } else { // No Oauth token
           response.meta.status = 400;
           response.meta.msg = response.status;
-          context.succeed(response);
+          //context.succeed(response);
+          callback(null, response);
         } // End checking
         break;
       default:
         response.status = "Invalid action";
         response.meta.status = 400;
         response.meta.msg = response.status;
-        context.succeed(response);
+        //context.succeed(response);
+        callback(null, response);
     }
   } else {
     response.status = "Missing parameters"
     response.meta.status = 400;
     response.meta.msg = response.status;
-    context.succeed(response);
+    //context.succeed(response);
+    callback(null, response);
   }
 };
