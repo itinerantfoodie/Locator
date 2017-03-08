@@ -44,6 +44,7 @@ exports.handler = function(event, context, callback) {
             dbparams.Item.ts = now;
             query.FilterExpression = 'ts < :now and ts > :some_time_ago and authtoken = :authtoken'
             query.ExpressionAttributeValues = {':some_time_ago' : now - api_refresh_time, ':now' : now, ':authtoken': oauth_token}
+            console.log("Lets do a query");
             dynamo.scan(query, function(err, res) {
                 if (!err) {
                   if (res.Count == 0) {
