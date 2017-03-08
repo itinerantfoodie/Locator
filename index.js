@@ -79,6 +79,16 @@ exports.handler = function(event, context, callback) {
                           var lastCheckinLocation = lastCheckin.venue.location;
                           var lastCheckinTS = lastCheckin.createdAt;
                           var lastCheckinVenueId = lastCheckin.venue.id;
+                          var lastCheckinVenueCategories = lastCheckin.venue.categories;
+                          var lastCheckinCategory = '';
+                          var lastCheckinVenueName = '';
+                          for (var i = 0; i < lastCheckinVenueCategories.length; i++) {
+                            // If the last category is a restaurant or airport
+                            if (lastCheckinVenueCategories[i]['name'].toString().indexOf("Restaurant") !== -1 || lastCheckinVenueCategories[i]['name'].toString().indexOf("Airport") !== -1) {
+                              lastCheckinCategory = lastCheckinVenueCategories[i]['name'];
+                              lastCheckinVenueName = lastCheckin.venue.name;
+                            }
+                          }
                           var locationString = "";
                           if (lastCheckinLocation.city !== undefined) {
                               locationString = lastCheckinLocation.city;
@@ -113,7 +123,15 @@ exports.handler = function(event, context, callback) {
                             "lat": fuzzy_lat,
                             "lng": fuzzy_lng
                           };
+                          if (lastCheckinVenueName !== '') {
+                            whereObj['placename'] = lastCheckinVenueName;
+                          }
+                          if (lastCheckinCategory !== '') {
+                            whereObj['placecategory'] = lastCheckinCategory;
+                          }
                           response["where"] = whereObj;
+                          console.log(whereObj);
+
                           // Store record
                           dbparams.Item["where"] = whereObj;
                           dynamo.putItem(dbparams, function(db) {
@@ -122,6 +140,12 @@ exports.handler = function(event, context, callback) {
                         }
                         response.status = "OK";
                         response.meta.status = 200;
+                        response.meta.msg = "OK";
+                        if ((lastCheckinTS + 3600) > now ) { // If the last checkin is recent
+                          response["where"]['placename'] = undefined;
+                          response["where"]['placecategory'] = undefined;
+                          response["where"]['foursquareid'] = undefined;
+                        }
                       } else {
                         response.meta.status = 400;
                       }
@@ -131,10 +155,17 @@ exports.handler = function(event, context, callback) {
                   } else {
                     // Use cached entry
                     if (res.Count == 1) {
+                      var dbWhereObj = res.Items[0]["where"];
+                      if ((parseInt(dbWhereObj["lastseen_timestamp"]) + 3600) > now ) { // If the last checkin is recent
+                        dbWhereObj['placename'] = undefined;
+                        dbWhereObj['placecategory'] = undefined;
+                        dbWhereObj['foursquareid'] = undefined;
+                      }
+
                       response.status = "OK";
                       response.meta.status = 200;
                       response.meta.msg = response.status;
-                      response["where"] = res.Items[0]["where"];
+                      response["where"] = dbWhereObj;
                     } else {
                       response.status = "OK";
                       response.meta.status = 200;
